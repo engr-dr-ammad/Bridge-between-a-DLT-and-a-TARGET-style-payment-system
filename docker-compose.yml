@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  dlt-target-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dlt-target-bridge
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - dlt-network
+
+  # Optional: Mock callback receiver for testing
+  callback-receiver:
+    image: kennethreitz/httpbin:latest
+    container_name: callback-receiver
+    ports:
+      - "3001:80"
+    networks:
+      - dlt-network
+
+networks:
+  dlt-network:
+    driver: bridge
